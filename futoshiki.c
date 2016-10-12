@@ -64,8 +64,9 @@ BOARD **getInputs (int *inputSize){
     
     return inputs;
 }
+//fill possibilities[x][y][n]  with 1 if n is not a valid value in a blank
 void calculatePossibilities(BOARD *board){
-	int i, j;
+	int i, j, k;
 	board->possibilities = (int***) malloc(sizeof(int**)*board->size);
 	for(i = 0; i < board->size; i++){
 		board->possibilities[i] = (int**) malloc(sizeof(int*)*board->size);
@@ -74,7 +75,14 @@ void calculatePossibilities(BOARD *board){
 		}
 	}
 	for(i = 0; i < board->size; i++){
-
+		for(j = 0; j < board->size; j++){
+			if(board->values[i][j] != 0){
+				for(k = 0; k < board->size; k++){
+					board->possibilities[i][k][board->values[i][j]] = 1;
+					board->possibilities[k][j][board->values[i][j]]= 1;
+				}
+			}
+		}
 	}
 
 }
@@ -164,9 +172,10 @@ int main(){
         printf ("Select a option:\n1: Simple Backtracking\n2: Backtracking with Forward Checking\n3: Backtracking with Forward Checking and MVR\n");
 
         scanf ("%d", &heuristic);
+		calculatePossibilities(inputs[i]);
+
         for (i=0; i<inputSize; i++){
             switch (heuristic){
-				calculatePossibilities(inputs[i]);
                 case 1: recursiveBacktrack(inputs[i], 0, 0); break;
                 //case 2: forwardCheckBacktrack(inputs[i]); break;
                 //case 3: mvrForwardCheckBacktrack(inputs[i]); break;
