@@ -23,7 +23,7 @@ BOARD *inicializeBoard(int size, int restrictionsNum){
     board->size = size;
     board->restrictionsNum = restrictionsNum;
     board->fixedValues = NULL;
-    
+
     board->values = (int**) malloc (sizeof(int*)*size);
     for (i=0; i<size; i++){
         board->values[i] = (int*) malloc (sizeof(int)*size);
@@ -52,7 +52,7 @@ BOARD **getInputs (int *inputSize){
 
         for (x=0; x<inputs[i]->size; x++){
             for (y=0; y<inputs[i]->size; y++){
-                scanf ("%d", &(inputs[i]->values[x][y]));
+                scanf ("%d", &(inputs[i]->values[y][x]));
             }
         }
         
@@ -102,14 +102,14 @@ int verifPosition (BOARD *board, int x, int y){
     return 1;
 }
 
-void simpleBacktrack(BOARD *board, int x, int y){
+int simpleBacktrack(BOARD *board, int x, int y){
     printf ("Checking (%d,%d)\n", x, y);
     if (y >= board->size) {
     	printf ("End of the board. y>= board->size\n");
-    	return; //End of the board
+    	return 1; //End of the board
     }
    	
-   	/*
+   
     if (board->values[x][y] != 0){
     	printf ("This position has a fixed value\n");
         if (x >= board->size-1){
@@ -117,10 +117,10 @@ void simpleBacktrack(BOARD *board, int x, int y){
         } else {
             simpleBacktrack(board, x+1, y);
         }
-        return;
-    }*/
+        return 1;
+    }
     
-    int i, irregular;
+    int i, irregular, res;
     for (i=0; i<board->size; i++){ //Tries values until finds one
         board->values[x][y] = (board->values[x][y])%board->size + 1;
         printf ("Trying value %d\n", board->values[x][y]);
@@ -130,11 +130,13 @@ void simpleBacktrack(BOARD *board, int x, int y){
         if (irregular == 1){
         	printf("This value is OK\n");
 	        if (x >= board->size-1){
-	            simpleBacktrack(board, 0, y+1);
+	            res = simpleBacktrack(board, 0, y+1);
 	        } else {
-	            simpleBacktrack(board, x+1, y);
+	            res = simpleBacktrack(board, x+1, y);
 	        }
-	        return;
+	        if (res == 1) //The result is GOOD
+	        	return 1;
+	        //Otherwise, check for other values...
         }
         printf ("This value is IRREGULAR\n");
     }
@@ -147,11 +149,11 @@ void simpleBacktrack(BOARD *board, int x, int y){
     		//NO SOLUTION??
     	} else {
     		board->values[x][y] = 0;
-        	simpleBacktrack(board, 0, y-1);
+    		return 0;
     	}
     } else {
     	board->values[x][y] = 0;
-        simpleBacktrack(board, x-1, y);
+    	return 0;
     }
 }
 
