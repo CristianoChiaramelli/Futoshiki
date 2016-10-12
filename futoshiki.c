@@ -113,11 +113,10 @@ int simpleBacktrack(BOARD *board, int x, int y){
     if (board->values[x][y] != 0){
     	printf ("This position has a fixed value\n");
         if (x >= board->size-1){
-            simpleBacktrack(board, 0, y+1);
+            return simpleBacktrack(board, 0, y+1);
         } else {
-            simpleBacktrack(board, x+1, y);
+            return simpleBacktrack(board, x+1, y);
         }
-        return 1;
     }
     
     int i, irregular, res;
@@ -128,14 +127,21 @@ int simpleBacktrack(BOARD *board, int x, int y){
 
         //This value is OK.
         if (irregular == 1){
-        	printf("This value is OK\n");
+        	printf("This value %d on (%d, %d) is OK\n", board->values[x][y], x, y);
 	        if (x >= board->size-1){
 	            res = simpleBacktrack(board, 0, y+1);
 	        } else {
 	            res = simpleBacktrack(board, x+1, y);
+	            printf ("RES: %d\n", res);
 	        }
-	        if (res == 1) //The result is GOOD
+	        if (res == 1){ //The result is GOOD
+	        	printf ("The result is GOOD at %d,%d\n", x, y);
 	        	return 1;
+	        } else {
+	        	printf ("The result is BAD at %d,%d\n", x, y);
+	        	printf ("For (i=%d to %d)\n", i, board->size);
+	        	continue;
+	        }
 	        //Otherwise, check for other values...
         }
         printf ("This value is IRREGULAR\n");
@@ -143,7 +149,7 @@ int simpleBacktrack(BOARD *board, int x, int y){
     
     //If code gets here, this position can't have any value.
     //Then it goes back, and tries changing other positions before
-    printf ("This position cant have any value. Lets go back\n");
+    printf ("This position %d, %d cant have any value. Lets go back\n", x, y);
     if (x <= 0){
     	if (y <= 0){
     		//NO SOLUTION??
