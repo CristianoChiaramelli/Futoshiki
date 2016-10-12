@@ -1,13 +1,21 @@
 #include <stdio.h>
-
 #include <stdlib.h>
-
 
 typedef struct BOARD_ {
     int size, restrictionsNum;
     int **values, **restrictions;
 } BOARD;
 
+void printBoard(BOARD *board){
+	int i, j;
+
+	for (i=0; i<board->size; i++){
+		for (j=0; j<board->size; j++){
+			printf ("%d ", board->values[j][i]);
+		}
+		printf ("\n");
+	}
+}
 
 BOARD *inicializeBoard(int size, int restrictionsNum){
     int i;
@@ -94,11 +102,15 @@ int verifPosition (BOARD *board, int x, int y){
 }
 
 void simpleBacktrack(BOARD *board, int x, int y){
-    
-    if (y >= board->size) return; //End of the board
-   
+    printf ("Checking (%d,%d)\n", x, y);
+    if (y >= board->size) {
+    	printf ("End of the board. y>= board->size\n");
+    	return; //End of the board
+    }
+   	
     if (board->values[x][y] != 0){
-        if (x >= board->size){
+    	printf ("This position has a fixed value\n");
+        if (x >= board->size-1){
             simpleBacktrack(board, 0, y+1);
         } else {
             simpleBacktrack(board, x+1, y);
@@ -106,15 +118,40 @@ void simpleBacktrack(BOARD *board, int x, int y){
         return;
     }
     
-    do{ //Tries values until finds one
+    int i, irregular;
+    for (i=0; i<board->size; i++){ //Tries values until finds one
         board->values[x][y]++;
-        verifPosition (board, x, y);
-        
-    } while (irregular);
-        
-        
-    board->values[x][y]
+        printf ("Trying value %d\n", board->values[x][y]);
+        irregular = verifPosition (board, x, y);
+
+        //This value is OK.
+        if (irregular == 1){
+        	printf("This value is OK\n");
+	        if (x >= board->size-1){
+	            simpleBacktrack(board, 0, y+1);
+	        } else {
+	            simpleBacktrack(board, x+1, y);
+	        }
+	        return;
+        }
+        printf ("This value is IRREGULAR\n");
+    }
+    
+    //If code gets here, this position can't have any value.
+    //Then it goes back, and tries changing other positions before
+    printf ("This position cant have any value. Lets go back\n");
+    if (x <= 0){
+    	if (y <= 0){
+    		//NO SOLUTION??
+    	} else {
+        	simpleBacktrack(board, 0, y-1);
+    	}
+    } else {
+        simpleBacktrack(board, x-1, y);
+    }
 }
+
+
 
 int main(){
     BOARD **inputs;
@@ -124,6 +161,7 @@ int main(){
     
     do{
         printf ("Select a option:\n1: Simple Backtracking\n2: Backtracking with Forward Checking\n3: Backtracking with Forward Checking and MVR\n");
+
         scanf ("%d", &heuristic);
         for (i=0; i<inputSize; i++){
             switch (heuristic){
@@ -132,6 +170,11 @@ int main(){
                 //case 3: mvrForwardCheckBacktrack(inputs[i]); break;
                 default: printf("Select one of the options 1,2 or 3\n");
             }
+        }
+
+        for (i=0; i<inputSize; i++){
+        	printf ("%d\n", i+1);
+            printBoard(inputs[i]);
         }
     } while (heuristic > 3 || heuristic < 1);
 }
