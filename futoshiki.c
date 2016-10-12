@@ -3,7 +3,7 @@
 
 typedef struct BOARD_ {
     int size, restrictionsNum;
-    int **values, **restrictions, **fixedValues;
+    int **values, **restrictions, ***possibilities;
 } BOARD;
 
 void printBoard(BOARD *board){
@@ -22,7 +22,6 @@ BOARD *inicializeBoard(int size, int restrictionsNum){
     BOARD *board = (BOARD*) malloc (sizeof(BOARD));
     board->size = size;
     board->restrictionsNum = restrictionsNum;
-    board->fixedValues = NULL;
 
     board->values = (int**) malloc (sizeof(int*)*size);
     for (i=0; i<size; i++){
@@ -65,7 +64,20 @@ BOARD **getInputs (int *inputSize){
     
     return inputs;
 }
+void calculatePossibilities(BOARD *board){
+	int i, j;
+	board->possibilities = (int***) malloc(sizeof(int**)*board->size);
+	for(i = 0; i < board->size; i++){
+		board->possibilities[i] = (int**) malloc(sizeof(int*)*board->size);
+		for(j = 0; j < board->size; j++){
+			board->possibilities[i][j] = (int*) calloc(sizeof(int),board->size);
+		}
+	}
+	for(i = 0; i < board->size; i++){
 
+	}
+
+}
 //Returns 1 if that value could be in tha position x,y. Returns 0 otherwise
 int verifPosition (BOARD *board, int x, int y){
     
@@ -127,10 +139,10 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 	}
 	for(i = 0; i < board->size; i++){
 		board->values[next[0]][next[1]]++;
-		printBoard(board);
-		printf("Testando %d\n", board->values[next[0]][next[1]]);
+//		printBoard(board);
+//		printf("Testando %d\n", board->values[next[0]][next[1]]);
 		if(verifPosition(board, next[0], next[1])){
-			printf("valido\n");
+//			printf("valido\n");
 			result = recursiveBacktrack(board, next[0], next[1]);
 			if(result == 1){
 				return 1;
@@ -138,7 +150,7 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 		}
 		
 	}
-	printf("invalido\n");
+//	printf("invalido\n");
 	board->values[next[0]][next[1]] = 0;
 	return 0;
 }
@@ -154,6 +166,7 @@ int main(){
         scanf ("%d", &heuristic);
         for (i=0; i<inputSize; i++){
             switch (heuristic){
+				calculatePossibilities(inputs[i]);
                 case 1: recursiveBacktrack(inputs[i], 0, 0); break;
                 //case 2: forwardCheckBacktrack(inputs[i]); break;
                 //case 3: mvrForwardCheckBacktrack(inputs[i]); break;
