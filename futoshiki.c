@@ -101,62 +101,47 @@ int verifPosition (BOARD *board, int x, int y){
     }
     return 1;
 }
-
-int simpleBacktrack(BOARD *board, int x, int y){
-    printf ("Checking (%d,%d)\n", x, y);
-    if (y >= board->size) {
-    	printf ("End of the board. y>= board->size\n");
-    	return 1; //End of the board
-    }
-   	
-   
-    if (board->values[x][y] != 0){
-    	printf ("This position has a fixed value\n");
-        if (x >= board->size-1){
-            simpleBacktrack(board, 0, y+1);
-        } else {
-            simpleBacktrack(board, x+1, y);
-        }
-        return 1;
-    }
-    
-    int i, irregular, res;
-    for (i=0; i<board->size; i++){ //Tries values until finds one
-        board->values[x][y] = (board->values[x][y])%board->size + 1;
-        printf ("Trying value %d\n", board->values[x][y]);
-        irregular = verifPosition (board, x, y);
-
-        //This value is OK.
-        if (irregular == 1){
-        	printf("This value is OK\n");
-	        if (x >= board->size-1){
-	            res = simpleBacktrack(board, 0, y+1);
-	        } else {
-	            res = simpleBacktrack(board, x+1, y);
-	        }
-	        if (res == 1) //The result is GOOD
-	        	return 1;
-	        //Otherwise, check for other values...
-        }
-        printf ("This value is IRREGULAR\n");
-    }
-    
-    //If code gets here, this position can't have any value.
-    //Then it goes back, and tries changing other positions before
-    printf ("This position cant have any value. Lets go back\n");
-    if (x <= 0){
-    	if (y <= 0){
-    		//NO SOLUTION??
-    	} else {
-    		board->values[x][y] = 0;
-    		return 0;
-    	}
-    } else {
-    	board->values[x][y] = 0;
-    	return 0;
-    }
+int* nextBlank(BOARD *board, int x, int y){
+	int i, j;
+	int *next;
+	for(i = y; i < board->size; i++){
+		for(j = x; j < board->size; j++){
+			if(board->values[j][i] == 0){
+				next = (int*) malloc(sizeof(int)*2);
+				next[0] = j;
+				next[1] = i;
+				return next;
+			}
+		}
+		x=0;
+	}
+	return NULL;
+		
 }
-
+int recursiveBacktrack(BOARD* board, int x, int y){
+	int i, result;
+	int *next = nextBlank(board, x, y);	
+//	printf("%d %d\n", next[0], next[1]);
+	if(next == NULL){
+		return 1;
+	}
+	for(i = 0; i < board->size; i++){
+		board->values[next[0]][next[1]]++;
+		printBoard(board);
+		printf("Testando %d\n", board->values[next[0]][next[1]]);
+		if(verifPosition(board, next[0], next[1])){
+			printf("valido\n");
+			result = recursiveBacktrack(board, next[0], next[1]);
+			if(result == 1){
+				return 1;
+			}
+		}
+		
+	}
+	printf("invalido\n");
+	board->values[next[0]][next[1]] = 0;
+	return 0;
+}
 int main(){
     BOARD **inputs;
     int i, inputSize, heuristic;
@@ -169,7 +154,7 @@ int main(){
         scanf ("%d", &heuristic);
         for (i=0; i<inputSize; i++){
             switch (heuristic){
-                case 1: simpleBacktrack(inputs[i], 0, 0); break;
+                case 1: recursiveBacktrack(inputs[i], 0, 0); break;
                 //case 2: forwardCheckBacktrack(inputs[i]); break;
                 //case 3: mvrForwardCheckBacktrack(inputs[i]); break;
                 default: printf("Select one of the options 1,2 or 3\n");
