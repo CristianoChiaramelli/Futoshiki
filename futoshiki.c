@@ -3,7 +3,7 @@
 
 typedef struct BOARD_ {
     int size, restrictionsNum;
-    int **values, **restrictions;
+    int **values, **restrictions, **fixedValues;
 } BOARD;
 
 void printBoard(BOARD *board){
@@ -22,6 +22,7 @@ BOARD *inicializeBoard(int size, int restrictionsNum){
     BOARD *board = (BOARD*) malloc (sizeof(BOARD));
     board->size = size;
     board->restrictionsNum = restrictionsNum;
+    board->fixedValues = NULL;
     
     board->values = (int**) malloc (sizeof(int*)*size);
     for (i=0; i<size; i++){
@@ -108,6 +109,7 @@ void simpleBacktrack(BOARD *board, int x, int y){
     	return; //End of the board
     }
    	
+   	/*
     if (board->values[x][y] != 0){
     	printf ("This position has a fixed value\n");
         if (x >= board->size-1){
@@ -116,11 +118,11 @@ void simpleBacktrack(BOARD *board, int x, int y){
             simpleBacktrack(board, x+1, y);
         }
         return;
-    }
+    }*/
     
     int i, irregular;
     for (i=0; i<board->size; i++){ //Tries values until finds one
-        board->values[x][y]++;
+        board->values[x][y] = (board->values[x][y])%board->size + 1;
         printf ("Trying value %d\n", board->values[x][y]);
         irregular = verifPosition (board, x, y);
 
@@ -144,14 +146,14 @@ void simpleBacktrack(BOARD *board, int x, int y){
     	if (y <= 0){
     		//NO SOLUTION??
     	} else {
+    		board->values[x][y] = 0;
         	simpleBacktrack(board, 0, y-1);
     	}
     } else {
+    	board->values[x][y] = 0;
         simpleBacktrack(board, x-1, y);
     }
 }
-
-
 
 int main(){
     BOARD **inputs;
