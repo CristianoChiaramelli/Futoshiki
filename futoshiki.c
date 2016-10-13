@@ -85,10 +85,6 @@ BOARD **getInputs (int *inputSize){
 				}
 			}
 
-        /*    for (y=0; y<4; y++){
-                scanf ("%d", &(inputs[i]->restrictions[x][y]));
-            }
-		*/
         }
     }
     
@@ -166,21 +162,6 @@ int verifPosition (BOARD *board, int x, int y){
 		if((board->restrictions[x][y] & LTR) == LTU) 
 			if(board->values[x][y] > board->values[x-1][y]) return 0;
 	}
-    /*for (i=0; i<board->restrictionsNum; i++){
-        if (board->restrictions[i][0] == x && board->restrictions[i][1] == y){
-            int posX = board->restrictions[i][2], posY = board->restrictions[i][3];
-
-            if (board->values[posX][posY] !=0 && board->values[x][y] >= board->values[posX][posY]){
-                return 0;
-            }
-        } else if (board->restrictions[i][2] == x && board->restrictions[i][3] == y){
-            int posX = board->restrictions[i][0], posY = board->restrictions[i][1];
-
-            if (board->values[posX][posY] !=0 && board->values[x][y] <= board->values[posX][posY]){
-                return 0;
-            }
-        }
-    }*/
     return 1;
 }
 int* nextBlank(BOARD *board, int x, int y){
