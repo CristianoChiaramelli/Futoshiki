@@ -86,6 +86,20 @@ void calculatePossibilities(BOARD *board){
 	}
 
 }
+void updatePossibilities(BOARD *board, int x, int y){
+	int i;
+	for(i = 0; i < board->size; i++){
+		board->possibilities[i][y][board->values[x][y]] = 0;
+		board->possibilities[x][i][board->values[x][y]] = 0;
+	}
+}
+//get the next possibility for the position (x,y)
+int getNextPossibility(BOARD *board, int x, int y){
+	for(i = board->values[x][y] + 1; i < board->size; i++){
+		if(board->possibilities[x][y][i] == 1) return i;
+	}
+	return -1;
+}
 //Returns 1 if that value could be in tha position x,y. Returns 0 otherwise
 int verifPosition (BOARD *board, int x, int y){
     
@@ -153,6 +167,7 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 //			printf("valido\n");
 			result = recursiveBacktrack(board, next[0], next[1]);
 			if(result == 1){
+				free(next);
 				return 1;
 			}
 		}
@@ -160,6 +175,7 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 	}
 //	printf("invalido\n");
 	board->values[next[0]][next[1]] = 0;
+	free(next);
 	return 0;
 }
 int main(){
