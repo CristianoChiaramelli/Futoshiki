@@ -64,6 +64,10 @@ BOARD **getInputs (int *inputSize){
 		
         for (x=0; x<inputs[i]->restrictionsNum; x++){
 			scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+			x1--;
+			x2--;
+			y1--;
+			y2--;
 			if(x1 == x2){
 				if(y1 < y2){
 					inputs[i]->restrictions[y1][x1] += LTR;
@@ -74,14 +78,14 @@ BOARD **getInputs (int *inputSize){
 					inputs[i]->restrictions[y2][x2] += GTR;
 				}
 			}
-			else{
+			else if (y1 == y2){
 				if(x1 < x2){
 					inputs[i]->restrictions[y1][x1] += LTD;
 					inputs[i]->restrictions[y2][x2] += GTU;
 				}
 				else{
-					inputs[i]->restrictions[y1][x1] += GTD;
-					inputs[i]->restrictions[y2][x2] += LTU;
+					inputs[i]->restrictions[y1][x1] += LTU;
+					inputs[i]->restrictions[y2][x2] += GTD;
 				}
 			}
 
@@ -146,21 +150,21 @@ int verifPosition (BOARD *board, int x, int y){
     }
 	if(board->restrictions[x][y] != 0){
 		if((board->restrictions[x][y] & LTR) == LTR) 
-			if(board->values[x][y] > board->values[x][y+1]) return 0;
+			if(board->values[x][y] > board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTL) == GTL) 
-			if(board->values[x][y] < board->values[x][y-1]) return 0;
+			if(board->values[x][y] < board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
 		if((board->restrictions[x][y] & LTL) == LTL) 
-			if(board->values[x][y] > board->values[x][y-1]) return 0;
+			if(board->values[x][y] > board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTR) == GTR) 
-			if(board->values[x][y] < board->values[x][y+1]) return 0;
+			if(board->values[x][y] < board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTU) == GTU) 
-			if(board->values[x][y] < board->values[x-1][y]) return 0;
-		if((board->restrictions[x][y] & LTD) == LTD) 
-			if(board->values[x][y] > board->values[x+1][y]) return 0;
-		if((board->restrictions[x][y] & GTD) == GTD) 
-			if(board->values[x][y] < board->values[x+1][y]) return 0;
-		if((board->restrictions[x][y] & LTR) == LTU) 
-			if(board->values[x][y] > board->values[x-1][y]) return 0;
+			if(board->values[x][y] < board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
+		if((board->restrictions[x][y] & LTD) == LTD)                              
+			if(board->values[x][y] > board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
+		if((board->restrictions[x][y] & GTD) == GTD)                              
+			if(board->values[x][y] < board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
+		if((board->restrictions[x][y] & LTU) == LTU)                              
+			if(board->values[x][y] > board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
 	}
     return 1;
 }
@@ -184,16 +188,16 @@ int* nextBlank(BOARD *board, int x, int y){
 int recursiveBacktrack(BOARD* board, int x, int y){
 	int i, result;
 	int *next = nextBlank(board, x, y);	
-//	printf("%d %d\n", next[0], next[1]);
 	if(next == NULL){
 		return 1;
 	}
+	printf("%d %d\n", next[0], next[1]);
 	for(i = 0; i < board->size; i++){
 		board->values[next[0]][next[1]]++;
-//		printBoard(board);
-//		printf("Testando %d\n", board->values[next[0]][next[1]]);
+		printBoard(board);
+		printf("Testando %d\n", board->values[next[0]][next[1]]);
 		if(verifPosition(board, next[0], next[1])){
-//			printf("valido\n");
+			printf("valido\n");
 			result = recursiveBacktrack(board, next[0], next[1]);
 			if(result == 1){
 				free(next);
@@ -202,7 +206,7 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 		}
 		
 	}
-//	printf("invalido\n");
+	printf("invalido\n");
 	board->values[next[0]][next[1]] = 0;
 	free(next);
 	return 0;
