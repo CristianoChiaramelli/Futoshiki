@@ -9,7 +9,7 @@
 #define GTU 32		// 32 - maior que o de cima
 #define LTU 64		// 64 - menor que o de cima
 #define GTD	128		// 128 - maior que o de baixo
-				
+int counter = 0; 		
 typedef struct BOARD_ {
     int size, restrictionsNum;
     int **values, **restrictions, ***possibilities;
@@ -122,6 +122,48 @@ void updatePossibilities(BOARD *board, int x, int y){
 		board->possibilities[i][y][board->values[x][y]] = 0;
 		board->possibilities[x][i][board->values[x][y]] = 0;
 	}
+	if(board->restrictions[x][y] != 0){
+		if((board->restrictions[x][y] & LTR) == LTR){
+			for(i = board->values[x][y]	- 1; i >= 0; i--){
+				board->possibilities[x+1][y][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & GTR) == GTR){
+			for(i = board->values[x][y]	+ 1; i < board->size; i++){
+				board->possibilities[x+1][y][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & LTL) == LTL){
+			for(i = board->values[x][y]	- 1; i >= 0; i--){
+				board->possibilities[x-1][y][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & GTL) == GTL){
+			for(i = board->values[x][y]	+ 1; i < board->size; i++){
+				board->possibilities[x-1][y][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & LTU) == LTU){
+			for(i = board->values[x][y]	- 1; i >= 0; i--){
+				board->possibilities[x][y-1][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & GTU) == GTU){
+			for(i = board->values[x][y]	+ 1; i < board->size; i++){
+				board->possibilities[x][y-1][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & LTD) == LTD){
+			for(i = board->values[x][y]	- 1; i >= 0; i--){
+				board->possibilities[x][y+1][i] = 1;
+			}
+		}
+		if((board->restrictions[x][y] & GTD) == GTD){
+			for(i = board->values[x][y]	+ 1; i < board->size; i++){
+				board->possibilities[x][y+1][i] = 1;
+			}
+		}
+	}
 }
 //get the next possibility for the position (x,y)
 int getNextPossibility(BOARD *board, int x, int y){
@@ -186,6 +228,7 @@ int* nextBlank(BOARD *board, int x, int y){
 		
 }
 int recursiveBacktrack(BOARD* board, int x, int y){
+	counter++;
 	int i, result;
 	int *next = nextBlank(board, x, y);	
 	if(next == NULL){
@@ -221,7 +264,7 @@ int main(){
         printf ("Select a option:\n1: Simple Backtracking\n2: Backtracking with Forward Checking\n3: Backtracking with Forward Checking and MVR\n");
 
         scanf ("%d", &heuristic);
-		calculatePossibilities(inputs[i]);
+		//calculatePossibilities(inputs[i]);
 
         for (i=0; i<inputSize; i++){
             switch (heuristic){
