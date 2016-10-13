@@ -269,24 +269,24 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 int forwardCheckBacktrack(BOARD *board, int x, int y){
 	counter++;
 	int i, result;
-	int ***possibilitiesCpy;
+	int ***possibilitiesCpy = NULL;
 	int *next = nextBlank(board, x, y);	
 	if(next == NULL){
 		return 1;
 	}
-	printf("%d %d\n", next[0], next[1]);
+//	printf("%d %d\n", next[0], next[1]);
 	for(i = 0; i < board->size; i++){
 		board->values[next[0]][next[1]] = getNextPossibility(board, next[0], next[1]);
 		if(board->values[next[0]][next[1]] == -1){
 			board->values[next[0]][next[1]] = 0;
 			return 0;
 		}
-		printBoard(board);
-		printf("Testando %d\n", board->values[next[0]][next[1]]);
+//		printBoard(board);
+//		printf("Testando %d\n", board->values[next[0]][next[1]]);
 		if(verifPosition(board, next[0], next[1])){
 			possibilitiesCpy = copyPossibilities(board);
 			updatePossibilities(board, x, y);
-			printf("valido\n");
+//			printf("valido\n");
 			result = forwardCheckBacktrack(board, next[0], next[1]);
 			if(result == 1){
 				free(next);
@@ -295,9 +295,10 @@ int forwardCheckBacktrack(BOARD *board, int x, int y){
 		}
 		
 	}
-	printf("invalido\n");
+//	printf("invalido\n");
 	board->values[next[0]][next[1]] = 0;
-	board->possibilities = possibilitiesCpy;
+	if(possibilitiesCpy != NULL)
+		board->possibilities = possibilitiesCpy;
 	free(next);
 	return 0;
 }
