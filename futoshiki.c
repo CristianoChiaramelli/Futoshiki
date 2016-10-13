@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+	
+#define LTR 1		// 1 - menor que o da direita
+#define GTL	2		// 2 - maior que o da esquerda
+#define LTL 4		// 4 - menor que o da esquerda
+#define GTR	8		// 8 - maior que o da direita
+#define LTD 16		// 16 - menor que o de baixo
+#define GTU 32		// 32 - maior que o de cima
+#define LTU 64		// 64 - menor que o de cima
+#define GTD	128		// 128 - maior que o de baixo
+				
 typedef struct BOARD_ {
     int size, restrictionsNum;
     int **values, **restrictions, ***possibilities;
@@ -24,20 +33,17 @@ BOARD *inicializeBoard(int size, int restrictionsNum){
     board->restrictionsNum = restrictionsNum;
 
     board->values = (int**) malloc (sizeof(int*)*size);
+    board->restrictions = (int**) malloc (sizeof(int*)*size);
     for (i=0; i<size; i++){
         board->values[i] = (int*) malloc (sizeof(int)*size);
+        board->restrictions[i] = (int*) malloc (sizeof(int)*size);
     }    
-    
-    board->restrictions = (int**) malloc (sizeof(int*)*restrictionsNum);
-    for (i=0; i<restrictionsNum; i++){
-        board->restrictions[i] = (int*) malloc (sizeof(int)*4);
-    }
     
     return board;
 }
 
 BOARD **getInputs (int *inputSize){
-    int i, x, y, size, restrictionsNum;
+    int i, x, y, size, restrictionsNum, x1, y1, x2, y2;
     
     scanf ("%d", inputSize);
     
@@ -55,10 +61,34 @@ BOARD **getInputs (int *inputSize){
             }
         }
         
+		
         for (x=0; x<inputs[i]->restrictionsNum; x++){
-            for (y=0; y<4; y++){
+			scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+			if(x1 == x2){
+				if(y1 < y2){
+					inputs[i]->restrictions[y1][x1] += LTR;
+					inputs[i]->restrictions[y2][x2] += GTL;
+				}
+				else{
+					inputs[i]->restrictions[y1][x1] += LTL;
+					inputs[i]->restrictions[y2][x2] += GTR;
+				}
+			}
+			else{
+				if(x1 < x2){
+					inputs[i]->restrictions[y1][x1] += LTD;
+					inputs[i]->restrictions[y2][x2] += GTU;
+				}
+				else{
+					inputs[i]->restrictions[y1][x1] += GTD;
+					inputs[i]->restrictions[y2][x2] += LTU;
+				}
+			}
+
+        /*    for (y=0; y<4; y++){
                 scanf ("%d", &(inputs[i]->restrictions[x][y]));
             }
+		*/
         }
     }
     
@@ -95,6 +125,7 @@ void updatePossibilities(BOARD *board, int x, int y){
 }
 //get the next possibility for the position (x,y)
 int getNextPossibility(BOARD *board, int x, int y){
+	int i;
 	for(i = board->values[x][y] + 1; i < board->size; i++){
 		if(board->possibilities[x][y][i] == 1) return i;
 	}
@@ -117,8 +148,25 @@ int verifPosition (BOARD *board, int x, int y){
             }
         }
     }
-    
-    for (i=0; i<board->restrictionsNum; i++){
+	if(board->restrictions[x][y] != 0){
+		if((board->restrictions[x][y] & LTR) == LTR) 
+			if(board->values[x][y] > board->values[x][y+1]) return 0;
+		if((board->restrictions[x][y] & GTL) == GTL) 
+			if(board->values[x][y] < board->values[x][y-1]) return 0;
+		if((board->restrictions[x][y] & LTL) == LTL) 
+			if(board->values[x][y] > board->values[x][y-1]) return 0;
+		if((board->restrictions[x][y] & GTR) == GTR) 
+			if(board->values[x][y] < board->values[x][y+1]) return 0;
+		if((board->restrictions[x][y] & GTU) == GTU) 
+			if(board->values[x][y] < board->values[x-1][y]) return 0;
+		if((board->restrictions[x][y] & LTD) == LTD) 
+			if(board->values[x][y] > board->values[x+1][y]) return 0;
+		if((board->restrictions[x][y] & GTD) == GTD) 
+			if(board->values[x][y] < board->values[x+1][y]) return 0;
+		if((board->restrictions[x][y] & LTR) == LTU) 
+			if(board->values[x][y] > board->values[x-1][y]) return 0;
+	}
+    /*for (i=0; i<board->restrictionsNum; i++){
         if (board->restrictions[i][0] == x && board->restrictions[i][1] == y){
             int posX = board->restrictions[i][2], posY = board->restrictions[i][3];
 
@@ -132,7 +180,7 @@ int verifPosition (BOARD *board, int x, int y){
                 return 0;
             }
         }
-    }
+    }*/
     return 1;
 }
 int* nextBlank(BOARD *board, int x, int y){
