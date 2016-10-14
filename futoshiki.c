@@ -10,6 +10,10 @@
 #define GTU 32		// 32 - maior que o de cima
 #define LTU 64		// 64 - menor que o de cima
 #define GTD	128		// 128 - maior que o de baixo
+
+#define POSSIBLE 0
+#define IMPOSSIBLE 1
+
 int counter = 0; 		
 typedef struct BOARD_ {
     int size, restrictionsNum;
@@ -95,9 +99,25 @@ BOARD **getInputs (int *inputSize){
     
     return inputs;
 }
+
+
+void updatePossibilities(BOARD *board, int x, int y){
+	int i;
+	for(i = 1; i < board->size; i++){
+		board->possibilities[i][y][board->values[x][y]] = IMPOSSIBLE; //All in the columm 'y' with that possibility will be IMPOSSIBLE
+		board->possibilities[i][y][0]--;
+		board->possibilities[x][i][board->values[x][y]] = IMPOSSIBLE; //The same for its line 'x'
+		board->possibilities[x][i][0]--;
+		if (board->possibilities[i][y][0] == 0 || board->possibilities[x][i][0] == 0){
+			return 0; //SHIT HAPPENS
+		}
+	}
+}
+
+
 //fill possibilities[x][y][n]  with 1 if n is not a valid value in a blank
 void calculatePossibilities(BOARD *board){
-	int i, j, k;
+	int i, j;
 	board->possibilities = (int***) malloc(sizeof(int**)*board->size);
 	for(i = 0; i < board->size; i++){
 		board->possibilities[i] = (int**) malloc(sizeof(int*)*board->size+1);
@@ -105,83 +125,34 @@ void calculatePossibilities(BOARD *board){
 			board->possibilities[i][j] = (int*) calloc(board->size+1, sizeof(int));
 		}
 	}
-	for(i = 0; i < board->size; i++){
-		for(j = 0; j < board->size; j++){
-			if(board->values[i][j] != 0){
-				for(k = 0; k < board->size; k++){
-					board->possibilities[i][k][board->values[i][j]] = 1;
-					board->possibilities[k][j][board->values[i][j]]= 1;
-				}
-			}
-		}
-	}
 
-}
-void updatePossibilities(BOARD *board, int x, int y){
-	int i;
-	for(i = 0; i < board->size; i++){
-		board->possibilities[i][y][board->values[x][y]] = 0;
-		board->possibilities[x][i][board->values[x][y]] = 0;
-	}
-	if(board->restrictions[x][y] != 0){
-		if((board->restrictions[x][y] & LTR) == LTR){
-			for(i = board->values[x][y]	- 1; i >= 0; i--){
-				board->possibilities[x+1][y][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & GTR) == GTR){
-			for(i = board->values[x][y]	+ 1; i < board->size; i++){
-				board->possibilities[x+1][y][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & LTL) == LTL){
-			for(i = board->values[x][y]	- 1; i >= 0; i--){
-				board->possibilities[x-1][y][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & GTL) == GTL){
-			for(i = board->values[x][y]	+ 1; i < board->size; i++){
-				board->possibilities[x-1][y][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & LTU) == LTU){
-			for(i = board->values[x][y]	- 1; i >= 0; i--){
-				board->possibilities[x][y-1][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & GTU) == GTU){
-			for(i = board->values[x][y]	+ 1; i < board->size; i++){
-				board->possibilities[x][y-1][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & LTD) == LTD){
-			for(i = board->values[x][y]	- 1; i >= 0; i--){
-				board->possibilities[x][y+1][i] = 0;
-			}
-		}
-		if((board->restrictions[x][y] & GTD) == GTD){
-			for(i = board->values[x][y]	+ 1; i < board->size; i++){
-				board->possibilities[x][y+1][i] = 0;
-			}
+	for (i=0; i<board->size; i++){
+		for (j=0; j<board->size; j++){
+			updatePossibilities(board, i, j);
 		}
 	}
 }
+
 int ***copyPossibilities(BOARD *board){
 int i, j, ***newPossibilities = (int***) malloc(sizeof(int**) * board->size);
 	for(i = 0; i < board->size; i++){
 		newPossibilities[i] = (int**) malloc(sizeof(int*)*board->size+1);
 		for(j = 0; j < board->size; j++){
 			newPossibilities[i][j] = (int*) calloc((board->size+1), sizeof(int));
-			newPossibilities[i][j] = memcpy(newPossibilities[i][j], board->possibilities[i][j], board->size+1);
+			newPossibilities[i][j] = memcpy(newPossibilities[i][j], board->possibilities[i][j], (board->size+1)*sizeof(int));
 		}
+	}
+	if (newPossibilities == NULL){
+		printf ("\n BACKUP FAILED\n");
 	}
 	return newPossibilities;
 }
+
 //get the next possibility for the position (x,y)
 int getNextPossibility(BOARD *board, int x, int y){
 	int i;
 	for(i = board->values[x][y] + 1; i <= board->size; i++){
-		if(board->possibilities[x][y][i] == 0) return i;
+		if(board->possibilities[x][y][i] == POSSIBLE) return i;
 	}
 	return -1;
 }
@@ -246,13 +217,10 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 	if(next == NULL){
 		return 1;
 	}
-//	printf("%d %d\n", next[0], next[1]);
 	for(i = 0; i < board->size; i++){
 		board->values[next[0]][next[1]]++;
-//		printBoard(board);
-//		printf("Testando %d\n", board->values[next[0]][next[1]]);
+
 		if(verifPosition(board, next[0], next[1])){
-//			printf("valido\n");
 			result = recursiveBacktrack(board, next[0], next[1]);
 			if(result == 1){
 				free(next);
@@ -266,42 +234,78 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 	free(next);
 	return 0;
 }
+
+void printPossibilities (BOARD *board){
+	printf ("\nPOSSIBILITIES NOW ->\n");
+	int i,j,k;
+
+	for (i=0; i<board->size; i++){
+		for (j=0; j<board->size; j++){
+			printf ("(%d,%d)(", j, i);
+			for (k=0; k<board->size+1; k++){
+				printf ("%d ", board->possibilities[j][i][k]);
+			}
+			printf (")");
+		}
+		printf ("\n");
+	}
+	printf ("\n");
+}
+
+void freePossibilities (BOARD *board){
+	int i, j;
+	for (i=0; i<board->size; i++){
+		for (j=0; j<board->size; j++){
+			free (board->possibilities[i][j]);
+		}
+		free (board->possibilities[i]);
+	}
+	free (board->possibilities);
+}
+
 int forwardCheckBacktrack(BOARD *board, int x, int y){
 	counter++;
+
 	int i, result;
 	int ***possibilitiesCpy = NULL;
 	int *next = nextBlank(board, x, y);	
 	if(next == NULL){
 		return 1;
 	}
-//	printf("%d %d\n", next[0], next[1]);
+
 	for(i = 0; i < board->size; i++){
+
 		board->values[next[0]][next[1]] = getNextPossibility(board, next[0], next[1]);
-		if(board->values[next[0]][next[1]] == -1){
+
+		if(board->values[next[0]][next[1]] == -1){ //If there are no possibilities, backtrack
 			board->values[next[0]][next[1]] = 0;
-			return 0;
+			break;
 		}
-//		printBoard(board);
-//		printf("Testando %d\n", board->values[next[0]][next[1]]);
-		if(verifPosition(board, next[0], next[1])){
-			possibilitiesCpy = copyPossibilities(board);
-			updatePossibilities(board, x, y);
-//			printf("valido\n");
-			result = forwardCheckBacktrack(board, next[0], next[1]);
-			if(result == 1){
-				free(next);
-				return 1;
+
+		possibilitiesCpy = copyPossibilities(board);
+
+		updatePossibilities(board, next[0], next[1]);
+
+		result = forwardCheckBacktrack(board, next[0], next[1]);
+		if(result == 1){
+			free(next);
+			return 1;
+		} else {
+
+			if(possibilitiesCpy != NULL){
+				freePossibilities(board);
+				board->possibilities = possibilitiesCpy;
 			}
+			else
+				printf ("MISSING BACKUP\n");
 		}
-		
 	}
-//	printf("invalido\n");
+
 	board->values[next[0]][next[1]] = 0;
-	if(possibilitiesCpy != NULL)
-		board->possibilities = possibilitiesCpy;
 	free(next);
 	return 0;
 }
+
 int main(){
     BOARD **inputs;
     int i, inputSize, heuristic;
@@ -314,6 +318,7 @@ int main(){
         scanf ("%d", &heuristic);
 		calculatePossibilities(inputs[i]);
 
+		counter = 0;
         for (i=0; i<inputSize; i++){
             switch (heuristic){
                 case 1: recursiveBacktrack(inputs[i], 0, 0); break;
@@ -322,7 +327,7 @@ int main(){
                 default: printf("Select one of the options 1,2 or 3\n");
             }
         }
-
+        printf ("COUNTER : %d\n", counter);
         for (i=0; i<inputSize; i++){
         	printf ("%d\n", i+1);
             printBoard(inputs[i]);
