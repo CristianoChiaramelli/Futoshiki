@@ -121,11 +121,11 @@ void printPossibilities (BOARD *board){
 int updatePossibilities(BOARD *board, int x, int y){
 	int i, j;
 	if (board->values[x][y]==0) return 1;
-	printf ("Board (%d,%d) = %d\n", x, y, board->values[x][y]);
+
 	if(board->restrictions[x][y] != 0){
 		printf ("Restriction: %d\n", board->restrictions[x][y]);
  		if((board->restrictions[x][y] & LTU) == LTU){
-
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y+1,x,y);
  			//If it must be lesser than the value above, i check the upper line
 	 		if (y+1 < board->size){
 	 			for(j = board->values[x][y]; j >= 1; j--){
@@ -146,6 +146,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & GTU) == GTU){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y,x,y+1);
 	 		if (y+1 < board->size){
 	 			for(j = board->values[x][y]; j <= board->size; j++){
 	 				if (board->possibilities[x][y+1][j] != IMPOSSIBLE){
@@ -165,6 +166,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & LTD) == LTD){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y-1,x,y);
  			if (y-1 >= 0){
 	 			for(j = board->values[x][y]; j >= 1; j--){
 	 				if (board->possibilities[x][y-1][j] != IMPOSSIBLE){
@@ -184,6 +186,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & GTD) == GTD){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y,x,y-1);
  			if (y-1 >= 0){
 	 			for(j = board->values[x][y]; j <= board->size; j++){
 	 				if (board->possibilities[x][y-1][j] != IMPOSSIBLE){
@@ -203,6 +206,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & LTR) == LTR){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x+1,y,x,y);
  			if (x+1 < board->size){
 	 			for(j = board->values[x][y]; j >= 1; j--){ //[x][y] smaller values
 	 				if (board->possibilities[x+1][y][j] != IMPOSSIBLE){
@@ -222,6 +226,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & GTR) == GTR){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y,x+1,y);
  			if (x+1 < board->size){
 	 			for(j = board->values[x][y]; j <= board->size; j++){
 	 				if (board->possibilities[x+1][y][j] != IMPOSSIBLE){
@@ -241,6 +246,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & LTL) == LTL){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x-1,y,x,y); 			
  			if (x-1 >= 0){
 	 			for(j = board->values[x][y]; j >= 1; j--){ //[x][y] smaller values
 	 				if (board->possibilities[x-1][y][j] != IMPOSSIBLE){
@@ -260,6 +266,7 @@ int updatePossibilities(BOARD *board, int x, int y){
  		}
 
  		if((board->restrictions[x][y] & GTL) == GTL){
+ 			printf ("RESTRICTION (%d,%d) > (%d,%d)\n", x,y,x-1,y);
  			if (x-1 >= 0){
 	 			for(j = board->values[x][y]; j <= board->size; j++){
 	 				if (board->possibilities[x-1][y][j] != IMPOSSIBLE){
@@ -284,13 +291,19 @@ int updatePossibilities(BOARD *board, int x, int y){
 			board->possibilities[x][i][board->values[x][y]] = IMPOSSIBLE; //The same for its line 'x'
 			board->possibilities[x][i][0]--;
 
-			if (board->possibilities[x][i][0] <= 0 && board->values[x][i] != 0){
+			if (board->possibilities[x][i][0] <= 0 && board->values[x][i] == 0){
+				printf ("Shit on (%d,%d):\n", x, i);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}
-			if (i+1 < board->size && board->possibilities[x][i+1][0] <= 0 && board->values[x][i+1] != 0){
+			if (i+1 < board->size && board->possibilities[x][i+1][0] <= 0 && board->values[x][i+1] == 0){
+				printf ("Shit on (%d,%d):\n", x, i+1);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}
-			if (i-1 >= 0 && board->possibilities[x][i-1][0] <= 0 && board->values[x][i-1] != 0){
+			if (i-1 >= 0 && board->possibilities[x][i-1][0] <= 0 && board->values[x][i-1] == 0){
+				printf ("Shit on (%d,%d):\n", x, i-1);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}
 		}
@@ -303,13 +316,19 @@ int updatePossibilities(BOARD *board, int x, int y){
 			board->possibilities[i][y][board->values[x][y]] = IMPOSSIBLE; //All in the columm 'y' with that possibility will be IMPOSSIBLE
 			board->possibilities[i][y][0]--;
 
-			if (board->possibilities[i][y][0] <= 0 && board->values[i][y]!=0){
+			if (board->possibilities[i][y][0] <= 0 && board->values[i][y]==0){
+				printf ("Shit on (%d,%d):\n", i, y);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}	
-			if (i+1<board->size && board->possibilities[i+1][y][0] <= 0 && board->values[i+1][y]!=0){
+			if (i+1<board->size && board->possibilities[i+1][y][0] <= 0 && board->values[i+1][y]==0){
+				printf ("Shit on (%d,%d):\n", i+1, y);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}	
-			if (i-1>= 0 && board->possibilities[i-1][y][0] <= 0 && board->values[i-1][y]!=0){
+			if (i-1>= 0 && board->possibilities[i-1][y][0] <= 0 && board->values[i-1][y]==0){
+				printf ("Shit on (%d,%d):\n", i-1, y);
+				printPossibilities(board);
 				return 0; //SHIT HAPPENS
 			}			
 		}
@@ -467,10 +486,11 @@ int forwardCheckBacktrack(BOARD *board, int x, int y){
 	for(i = 0; i < board->size; i++){
 
 		board->values[next[0]][next[1]] = getNextPossibility(board, next[0], next[1]);
+		printf ("Board (%d,%d) receives %d\n", next[0], next[1],board->values[next[0]][next[1]]);
 
 		if(board->values[next[0]][next[1]] == -1){ //If there are no possibilities, backtrack
 			board->values[next[0]][next[1]] = 0;
-
+			printf ("No more possibilities for %d,%d. Backtrack\n", next[0], next[1]);
 			break;
 		}
 
@@ -480,6 +500,7 @@ int forwardCheckBacktrack(BOARD *board, int x, int y){
 		if (updatePossibilities(board, next[0], next[1]) == 0){
 			freePossibilities(board);
 			board->possibilities = possibilitiesCpy;
+			printf ("Forward alerted shit would happens... Backtrack\n");
 			continue;
 		}
 
