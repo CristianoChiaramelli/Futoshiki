@@ -101,17 +101,34 @@ BOARD **getInputs (int *inputSize){
 }
 
 
-void updatePossibilities(BOARD *board, int x, int y){
+int updatePossibilities(BOARD *board, int x, int y){
 	int i;
-	for(i = 1; i < board->size; i++){
-		board->possibilities[i][y][board->values[x][y]] = IMPOSSIBLE; //All in the columm 'y' with that possibility will be IMPOSSIBLE
-		board->possibilities[i][y][0]--;
-		board->possibilities[x][i][board->values[x][y]] = IMPOSSIBLE; //The same for its line 'x'
-		board->possibilities[x][i][0]--;
-		if (board->possibilities[i][y][0] == 0 || board->possibilities[x][i][0] == 0){
-			return 0; //SHIT HAPPENS
+	if (board->values[x][y]==0) return 1;
+
+	for(i = 0; i < board->size; i++){
+		if (board->possibilities[x][i][board->values[x][y]] != IMPOSSIBLE){
+			board->possibilities[x][i][board->values[x][y]] = IMPOSSIBLE; //The same for its line 'x'
+			board->possibilities[x][i][0]--;
+
+			if (board->possibilities[x][i][0] == 0 && board->values[x][i] == 0){
+				return 0; //SHIT HAPPENS
+			}
 		}
 	}
+
+	for (i=0; i < board->size; i++){
+		if (i==x) continue;
+		if (board->possibilities[i][y][board->values[x][y]] != IMPOSSIBLE){
+			board->possibilities[i][y][board->values[x][y]] = IMPOSSIBLE; //All in the columm 'y' with that possibility will be IMPOSSIBLE
+			board->possibilities[i][y][0]--;
+
+			if (board->possibilities[i][y][0] == 0 && board->values[i][y]==0){
+				return 0; //SHIT HAPPENS
+			}			
+		}
+	}
+
+	return 1;
 }
 
 
@@ -123,6 +140,7 @@ void calculatePossibilities(BOARD *board){
 		board->possibilities[i] = (int**) malloc(sizeof(int*)*board->size+1);
 		for(j = 0; j < board->size; j++){
 			board->possibilities[i][j] = (int*) calloc(board->size+1, sizeof(int));
+			board->possibilities[i][j][0] = board->size;
 		}
 	}
 
@@ -279,25 +297,26 @@ int forwardCheckBacktrack(BOARD *board, int x, int y){
 
 		if(board->values[next[0]][next[1]] == -1){ //If there are no possibilities, backtrack
 			board->values[next[0]][next[1]] = 0;
+
 			break;
 		}
 
 		possibilitiesCpy = copyPossibilities(board);
 
-		updatePossibilities(board, next[0], next[1]);
+		//If update == 0, some place is now without possibilities. Backtrack
+		if (updatePossibilities(board, next[0], next[1]) == 0){
+			freePossibilities(board);
+			board->possibilities = possibilitiesCpy;
+			continue;
+		}
 
 		result = forwardCheckBacktrack(board, next[0], next[1]);
 		if(result == 1){
 			free(next);
 			return 1;
 		} else {
-
-			if(possibilitiesCpy != NULL){
-				freePossibilities(board);
-				board->possibilities = possibilitiesCpy;
-			}
-			else
-				printf ("MISSING BACKUP\n");
+			freePossibilities(board);
+			board->possibilities = possibilitiesCpy;
 		}
 	}
 
