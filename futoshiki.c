@@ -100,6 +100,23 @@ BOARD **getInputs (int *inputSize){
     return inputs;
 }
 
+void printPossibilities (BOARD *board){
+	printf ("\nPOSSIBILITIES NOW ->\n");
+	int i,j,k;
+
+	for (i=0; i<board->size; i++){
+		for (j=0; j<board->size; j++){
+			printf ("(%d,%d)(", j, i);
+			for (k=0; k<board->size+1; k++){
+				printf ("%d ", board->possibilities[j][i][k]);
+			}
+			printf (")");
+		}
+		printf ("\n");
+	}
+	printf ("\n");
+}
+
 
 int updatePossibilities(BOARD *board, int x, int y){
 	int i, j;
@@ -267,13 +284,13 @@ int updatePossibilities(BOARD *board, int x, int y){
 			board->possibilities[x][i][board->values[x][y]] = IMPOSSIBLE; //The same for its line 'x'
 			board->possibilities[x][i][0]--;
 
-			if (board->possibilities[x][i][0] == 0 && board->values[x][i] == 0){
+			if (board->possibilities[x][i][0] <= 0 && board->values[x][i] != 0){
 				return 0; //SHIT HAPPENS
 			}
-			if (i+1 < board->size && board->possibilities[x][i+1][0] == 0 && board->values[x][i+1] == 0){
+			if (i+1 < board->size && board->possibilities[x][i+1][0] <= 0 && board->values[x][i+1] != 0){
 				return 0; //SHIT HAPPENS
 			}
-			if (i-1 >= 0 && board->possibilities[x][i-1][0] == 0 && board->values[x][i-1] == 0){
+			if (i-1 >= 0 && board->possibilities[x][i-1][0] <= 0 && board->values[x][i-1] != 0){
 				return 0; //SHIT HAPPENS
 			}
 		}
@@ -286,20 +303,20 @@ int updatePossibilities(BOARD *board, int x, int y){
 			board->possibilities[i][y][board->values[x][y]] = IMPOSSIBLE; //All in the columm 'y' with that possibility will be IMPOSSIBLE
 			board->possibilities[i][y][0]--;
 
-			if (board->possibilities[i][y][0] == 0 && board->values[i][y]==0){
+			if (board->possibilities[i][y][0] <= 0 && board->values[i][y]!=0){
 				return 0; //SHIT HAPPENS
 			}	
-			if (i+1<board->size && board->possibilities[i+1][y][0] == 0 && board->values[i+1][y]==0){
+			if (i+1<board->size && board->possibilities[i+1][y][0] <= 0 && board->values[i+1][y]!=0){
 				return 0; //SHIT HAPPENS
 			}	
-			if (i-1>= 0 && board->possibilities[i-1][y][0] == 0 && board->values[i-1][y]==0){
+			if (i-1>= 0 && board->possibilities[i-1][y][0] <= 0 && board->values[i-1][y]!=0){
 				return 0; //SHIT HAPPENS
 			}			
 		}
 	}
 
 
-
+	printPossibilities(board);
 
 	return 1;
 }
@@ -366,21 +383,21 @@ int verifPosition (BOARD *board, int x, int y){
     }
 	if(board->restrictions[x][y] != 0){
 		if((board->restrictions[x][y] & LTR) == LTR) 
-			if(board->values[x][y] > board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
+			if(board->values[x][y] >= board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTL) == GTL) 
-			if(board->values[x][y] < board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
+			if(board->values[x][y] <= board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
 		if((board->restrictions[x][y] & LTL) == LTL) 
-			if(board->values[x][y] > board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
+			if(board->values[x][y] >= board->values[x-1][y] && board->values[x-1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTR) == GTR) 
-			if(board->values[x][y] < board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
+			if(board->values[x][y] <= board->values[x+1][y] && board->values[x+1][y] != 0) return 0;
 		if((board->restrictions[x][y] & GTU) == GTU) 
-			if(board->values[x][y] < board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
+			if(board->values[x][y] <= board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
 		if((board->restrictions[x][y] & LTD) == LTD)                              
-			if(board->values[x][y] > board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
+			if(board->values[x][y] >= board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
 		if((board->restrictions[x][y] & GTD) == GTD)                              
-			if(board->values[x][y] < board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
+			if(board->values[x][y] <= board->values[x][y+1] && board->values[x][y+1] != 0) return 0;
 		if((board->restrictions[x][y] & LTU) == LTU)                              
-			if(board->values[x][y] > board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
+			if(board->values[x][y] >= board->values[x][y-1] && board->values[x][y-1] != 0) return 0;
 	}
     return 1;
 }
@@ -424,23 +441,6 @@ int recursiveBacktrack(BOARD* board, int x, int y){
 	board->values[next[0]][next[1]] = 0;
 	free(next);
 	return 0;
-}
-
-void printPossibilities (BOARD *board){
-	printf ("\nPOSSIBILITIES NOW ->\n");
-	int i,j,k;
-
-	for (i=0; i<board->size; i++){
-		for (j=0; j<board->size; j++){
-			printf ("(%d,%d)(", j, i);
-			for (k=0; k<board->size+1; k++){
-				printf ("%d ", board->possibilities[j][i][k]);
-			}
-			printf (")");
-		}
-		printf ("\n");
-	}
-	printf ("\n");
 }
 
 void freePossibilities (BOARD *board){
