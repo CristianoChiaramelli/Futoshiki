@@ -102,8 +102,165 @@ BOARD **getInputs (int *inputSize){
 
 
 int updatePossibilities(BOARD *board, int x, int y){
-	int i;
+	int i, j;
 	if (board->values[x][y]==0) return 1;
+	printf ("Board (%d,%d) = %d\n", x, y, board->values[x][y]);
+	if(board->restrictions[x][y] != 0){
+		printf ("Restriction: %d\n", board->restrictions[x][y]);
+ 		if((board->restrictions[x][y] & LTU) == LTU){
+
+ 			//If it must be lesser than the value above, i check the upper line
+	 		if (y+1 < board->size){
+	 			for(j = board->values[x][y]; j >= 1; j--){
+	 				if (board->possibilities[x][y+1][j] != IMPOSSIBLE){
+	 					board->possibilities[x][y+1][j] = IMPOSSIBLE;
+	 					board->possibilities[x][y+1][0]--;
+	 				}
+	 			}	 	 	
+	 			if (board->values[x][y+1] != 0){
+	 				for(j = board->values[x][y+1]; j <= board->size; j++){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+	 			}
+	 		}
+ 		}
+
+ 		if((board->restrictions[x][y] & GTU) == GTU){
+	 		if (y+1 < board->size){
+	 			for(j = board->values[x][y]; j <= board->size; j++){
+	 				if (board->possibilities[x][y+1][j] != IMPOSSIBLE){
+	 					board->possibilities[x][y+1][j] = IMPOSSIBLE;
+	 					board->possibilities[x][y+1][0]--;
+	 				}
+	 			}
+	 			if (board->values[x][y+1] != 0){
+	 				for(j = board->values[x][y+1]; j >= 1; j--){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+	 				}
+		 		}
+ 			}
+ 		}
+
+ 		if((board->restrictions[x][y] & LTD) == LTD){
+ 			if (y-1 >= 0){
+	 			for(j = board->values[x][y]; j >= 1; j--){
+	 				if (board->possibilities[x][y-1][j] != IMPOSSIBLE){
+	 					board->possibilities[x][y-1][j] = IMPOSSIBLE;
+	 					board->possibilities[x][y-1][0]--;
+	 				}
+	 			}
+	 			if (board->values[x][y-1] != 0){
+	 				for(j = board->values[x][y-1]; j <= board->size; j++){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+		 		}
+ 			}
+ 		}
+
+ 		if((board->restrictions[x][y] & GTD) == GTD){
+ 			if (y-1 >= 0){
+	 			for(j = board->values[x][y]; j <= board->size; j++){
+	 				if (board->possibilities[x][y-1][j] != IMPOSSIBLE){
+	 					board->possibilities[x][y-1][j] = IMPOSSIBLE;
+	 					board->possibilities[x][y-1][0]--;
+	 				}	
+	 			}	 	
+	 			if (board->values[x][y-1] != 0){
+	 				for(j = board->values[x][y-1]; j >= 1; j--){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+	 			}	
+ 			}
+ 		}
+
+ 		if((board->restrictions[x][y] & LTR) == LTR){
+ 			if (x+1 < board->size){
+	 			for(j = board->values[x][y]; j >= 1; j--){ //[x][y] smaller values
+	 				if (board->possibilities[x+1][y][j] != IMPOSSIBLE){
+	 					board->possibilities[x+1][y][j] = IMPOSSIBLE;
+	 					board->possibilities[x+1][y][0]--;
+	 				}
+	 			}	 	 	
+	 			if (board->values[x+1][y] != 0){ //[x+1][y] greater values
+	 				for(j = board->values[x+1][y]; j <= board->size; j++){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+	 				}
+		 		}
+ 			}
+ 		}
+
+ 		if((board->restrictions[x][y] & GTR) == GTR){
+ 			if (x+1 < board->size){
+	 			for(j = board->values[x][y]; j <= board->size; j++){
+	 				if (board->possibilities[x+1][y][j] != IMPOSSIBLE){
+	 					board->possibilities[x+1][y][j] = IMPOSSIBLE;
+	 					board->possibilities[x+1][y][0]--;
+	 				}
+	 			}	 	
+	 			if (board->values[x+1][y] != 0){
+	 				for(j = board->values[x+1][y]; j >= 1; j--){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+		 		}
+ 			}	
+ 		}
+
+ 		if((board->restrictions[x][y] & LTL) == LTL){
+ 			if (x-1 >= 0){
+	 			for(j = board->values[x][y]; j >= 1; j--){ //[x][y] smaller values
+	 				if (board->possibilities[x-1][y][j] != IMPOSSIBLE){
+	 					board->possibilities[x-1][y][j] = IMPOSSIBLE;
+	 					board->possibilities[x-1][y][0]--;
+	 				}
+	 			}	 	 	
+	 			if (board->values[x-1][y] != 0){ //[x+1][y] greater values
+	 				for(j = board->values[x-1][y]; j <= board->size; j++){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+ 				}
+ 			}
+ 		}
+
+ 		if((board->restrictions[x][y] & GTL) == GTL){
+ 			if (x-1 >= 0){
+	 			for(j = board->values[x][y]; j <= board->size; j++){
+	 				if (board->possibilities[x-1][y][j] != IMPOSSIBLE){
+	 					board->possibilities[x-1][y][j] = IMPOSSIBLE;
+	 					board->possibilities[x-1][y][0]--;
+	 				}
+	 			}	 	
+	 			if (board->values[x-1][y] != 0){
+	 				for(j = board->values[x-1][y]; j >= 1; j--){
+		 				if (board->possibilities[x][y][j] != IMPOSSIBLE){
+		 					board->possibilities[x][y][j] = IMPOSSIBLE;
+		 					board->possibilities[x][y][0]--;
+		 				}
+		 			}
+ 				}
+ 			}	
+ 		}
+	}
 
 	for(i = 0; i < board->size; i++){
 		if (board->possibilities[x][i][board->values[x][y]] != IMPOSSIBLE){
@@ -113,9 +270,16 @@ int updatePossibilities(BOARD *board, int x, int y){
 			if (board->possibilities[x][i][0] == 0 && board->values[x][i] == 0){
 				return 0; //SHIT HAPPENS
 			}
+			if (i+1 < board->size && board->possibilities[x][i+1][0] == 0 && board->values[x][i+1] == 0){
+				return 0; //SHIT HAPPENS
+			}
+			if (i-1 >= 0 && board->possibilities[x][i-1][0] == 0 && board->values[x][i-1] == 0){
+				return 0; //SHIT HAPPENS
+			}
 		}
 	}
 
+	//Iterate thought the line y
 	for (i=0; i < board->size; i++){
 		if (i==x) continue;
 		if (board->possibilities[i][y][board->values[x][y]] != IMPOSSIBLE){
@@ -124,9 +288,18 @@ int updatePossibilities(BOARD *board, int x, int y){
 
 			if (board->possibilities[i][y][0] == 0 && board->values[i][y]==0){
 				return 0; //SHIT HAPPENS
+			}	
+			if (i+1<board->size && board->possibilities[i+1][y][0] == 0 && board->values[i+1][y]==0){
+				return 0; //SHIT HAPPENS
+			}	
+			if (i-1>= 0 && board->possibilities[i-1][y][0] == 0 && board->values[i-1][y]==0){
+				return 0; //SHIT HAPPENS
 			}			
 		}
 	}
+
+
+
 
 	return 1;
 }
@@ -335,13 +508,15 @@ int main(){
         printf ("Select a option:\n1: Simple Backtracking\n2: Backtracking with Forward Checking\n3: Backtracking with Forward Checking and MVR\n");
 
         scanf ("%d", &heuristic);
-		calculatePossibilities(inputs[i]);
 
 		counter = 0;
         for (i=0; i<inputSize; i++){
+            
             switch (heuristic){
                 case 1: recursiveBacktrack(inputs[i], 0, 0); break;
-                case 2: forwardCheckBacktrack(inputs[i], 0, 0); break;
+                case 2: calculatePossibilities(inputs[i]);
+						forwardCheckBacktrack(inputs[i], 0, 0); break;
+
                 //case 3: mvrForwardCheckBacktrack(inputs[i]); break;
                 default: printf("Select one of the options 1,2 or 3\n");
             }
